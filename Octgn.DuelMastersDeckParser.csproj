@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{D1F5848B-84D9-4EE5-8969-E62B054DAA4A}</ProjectGuid>
+    <ProjectGuid>{45B347C0-F8EB-422D-A842-E7DD5A9CF1F1}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Octgn.Octgn.DuelMastersDeckParser</RootNamespace>
@@ -90,11 +90,11 @@
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\Octgn.Core\Octgn.Core.csproj">
+    <ProjectReference Include="..\..\octgnFX\Octgn.Core\Octgn.Core.csproj">
       <Project>{9bdb193e-e3ba-4a1d-8c6e-ecabb6ffc7ab}</Project>
       <Name>Octgn.Core</Name>
     </ProjectReference>
-    <ProjectReference Include="..\Octgn.DataNew\Octgn.DataNew.csproj">
+    <ProjectReference Include="..\..\octgnFX\Octgn.DataNew\Octgn.DataNew.csproj">
       <Project>{59759960-0a48-45ec-abb9-b4faad6d43ee}</Project>
       <Name>Octgn.DataNew</Name>
     </ProjectReference>

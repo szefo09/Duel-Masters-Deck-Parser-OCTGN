@@ -125,7 +125,8 @@ namespace Octgn.DuelMastersDeckParser
         private static readonly Dictionary<string, string> CardAliases = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase)
         {
             { "bat", "bronze-arm tribe" },
-            { "tdad", "terradragon arque delacerna" }
+            { "tdad", "terradragon arque delacerna" },
+            {"trash crawler", "thrash crawler" }
         };
         private class ParsedCard
         {
@@ -216,7 +217,11 @@ namespace Octgn.DuelMastersDeckParser
                 string setStr = set.ToString();
                 string formatStr = format.ToString();
 
-                if ((Regex.IsMatch(setStr, @"DM-\d\d") || setStr=="Promo and DMC Packs" || setStr=="English Promotional Cards") && formatStr.Contains("TCG"))
+                if (Regex.IsMatch(setStr, @"DM-\d\d")  && formatStr.Contains("TCG"))
+                {
+                    result.Add(c);
+                }
+                if (setStr == "Promo and DMC Packs" || setStr == "English Promotional Cards")
                 {
                     result.Add(c);
                 }
