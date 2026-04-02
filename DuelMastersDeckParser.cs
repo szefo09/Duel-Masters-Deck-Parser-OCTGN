@@ -204,29 +204,24 @@ namespace Octgn.DuelMastersDeckParser
         }
         private List<NormalizedCard> FilterPreferred(List<NormalizedCard> candidates)
         {
-            var result = new List<NormalizedCard>();
-           
-            foreach (var c in candidates)
+            var primary = candidates.Where(c =>
             {
-                var set = c.Card.GetProperty("Set");
-                var format = c.Card.GetProperty("Format");
+                var set = c.Card.GetProperty("Set")?.ToString();
+                var format = c.Card.GetProperty("Format")?.ToString();
 
-                if (set == null || format == null)
-                    continue;
+                return set != null && format != null &&
+                       Regex.IsMatch(set, @"DM-\d\d") &&
+                       format.Contains("TCG");
+            }).ToList();
 
-                string setStr = set.ToString();
-                string formatStr = format.ToString();
+            if (primary.Any())
+                return primary;
 
-                if (Regex.IsMatch(setStr, @"DM-\d\d")  && formatStr.Contains("TCG"))
-                {
-                    result.Add(c);
-                }
-                if (setStr == "Promo and DMC Packs" || setStr == "English Promotional Cards")
-                {
-                    result.Add(c);
-                }
-            }
-            return result;
+            return candidates.Where(c =>
+            {
+                var set = c.Card.GetProperty("Set")?.ToString();
+                return set == "Promo and DMC Packs" || set == "English Promotional Cards";
+            }).ToList();
         }
         private string ConvertDeckToText(IDeck deck)
         {
