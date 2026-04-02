@@ -18,7 +18,9 @@ This plugin is based on the example provided in the [OCTGN Source Code](https://
 
 ## Installation
 ![GitHub release](https://img.shields.io/github/v/release/szefo09/Duel-Masters-Deck-Parser-OCTGN?label=Latest%20Release)
+**When installing Duel Masters system 1.1.1.61 or newer, the plugin will autoinstall!**
 
+## Manual Installaion
 1. Go to the [Releases page](https://github.com/szefo09/Duel-Masters-Deck-Parser-OCTGN/releases) and download `Octgn.DuelMastersDeckParser.dll`.
 2. Navigate to your OCTGN Data Directory, e.g., `OCTGN\Data\Plugins`.
 3. Create a folder called `DuelMastersDeckParser`.
