@@ -126,7 +126,8 @@ namespace Octgn.DuelMastersDeckParser
         {
             { "bat", "bronze-arm tribe" },
             { "tdad", "terradragon arque delacerna" },
-            {"trash crawler", "thrash crawler" }
+            {"trash crawler", "thrash crawler" },
+            {"dfbc", "deadly fighter braid claw" }
         };
         private class ParsedCard
         {
@@ -144,11 +145,64 @@ namespace Octgn.DuelMastersDeckParser
                 return "Duel Masters Deck Parser";
             }
         }
+        private int Levenshtein(string s, string t, int maxDistance = 4)
+        {
+            if (s == null) throw new ArgumentNullException(nameof(s));
+            if (t == null) throw new ArgumentNullException(nameof(t));
 
-        /// <summary>
-        /// This happens when the menu item is clicked.
-        /// </summary>
-        /// <param name="con"></param>
+            int n = s.Length;
+            int m = t.Length;
+
+            if (n == 0) return m;
+            if (m == 0) return n;
+
+            if (Math.Abs(n - m) > maxDistance)
+                return maxDistance + 1;
+
+            if (n > m)
+            {
+                var temp = s;
+                s = t;
+                t = temp;
+                n = s.Length;
+                m = t.Length;
+            }
+
+            var prev = new int[n + 1];
+            var curr = new int[n + 1];
+
+            for (int i = 0; i <= n; i++)
+                prev[i] = i;
+
+            for (int j = 1; j <= m; j++)
+            {
+                curr[0] = j;
+                int min = curr[0];
+                char tj = t[j - 1];
+
+                for (int i = 1; i <= n; i++)
+                {
+                    int cost = s[i - 1] == tj ? 0 : 1;
+
+                    int val = Math.Min(
+                        Math.Min(curr[i - 1] + 1, prev[i] + 1),
+                        prev[i - 1] + cost
+                    );
+
+                    curr[i] = val;
+                    if (val < min) min = val;
+                }
+
+                if (min > maxDistance)
+                    return maxDistance + 1;
+
+                var temp = prev;
+                prev = curr;
+                curr = temp;
+            }
+
+            return prev[n];
+        }
         private ParsedCard ParseLine(string line)
         {
             if (string.IsNullOrWhiteSpace(line))
@@ -163,22 +217,23 @@ namespace Octgn.DuelMastersDeckParser
                 return new ParsedCard
                 {
                     Count = int.Parse(match.Groups[1].Value),
-                    Name = match.Groups[2].Value.Trim().ToLower()
+                    Name = match.Groups[2].Value.Trim().ToLowerInvariant()
                 };
             }
 
             return new ParsedCard
             {
                 Count = 1,
-                Name = line.ToLower()
+                Name = line.ToLowerInvariant()
             };
         }
         private Card FindBestMatch(string input, List<NormalizedCard> cards)
         {
-            input = input.ToLower();
+            input = input.ToLowerInvariant();
             
             var candidates = cards
-                .Where(c => input.Contains(c.NormalizedName))
+                .Where(c => c.NormalizedName.Equals(input))
+                .OrderBy(c=>c.NormalizedName)
                 .ToList();
 
             var preferred = FilterPreferred(candidates);
@@ -186,11 +241,21 @@ namespace Octgn.DuelMastersDeckParser
             if (preferred.Count > 0)
                 return preferred[0].Card;
 
+            candidates = cards
+                .Where(c => c.NormalizedName.Contains(input) ||
+                Regex.Replace(c.NormalizedName.Replace("the ", ""), @"[^\w]", "").Contains(Regex.Replace(input, @"[^\w]", "")))
+                .OrderBy(c=>c.NormalizedName)
+                .ToList();
+
+            preferred = FilterPreferred(candidates);
+            if (preferred.Count > 0)
+                return preferred[0].Card;
+
             if (candidates.Count > 0)
                 return candidates[0].Card;
 
-            candidates = cards
-                .Where(c => c.NormalizedName.Equals(input))
+            candidates = cards.Where(c => Levenshtein(c.NormalizedName, input) <= 2 || Levenshtein(Regex.Replace(c.NormalizedName,", .*", ""), input) <=2)
+                .OrderBy(c =>c.NormalizedName)
                 .ToList();
 
             preferred = FilterPreferred(candidates);
@@ -238,6 +303,10 @@ namespace Octgn.DuelMastersDeckParser
             }
             return text;
         }
+        /// <summary>
+        /// This happens when the menu item is clicked.
+        /// </summary>
+        /// <param name="con"></param>
         public void OnClick(IDeckBuilderPluginController con)
         {
             var curDeck = con.GetLoadedDeck();
@@ -253,7 +322,7 @@ namespace Octgn.DuelMastersDeckParser
             if(input == null)
                 return;
             var d = game.CreateDeck();
-            var allCards = game.AllCards().Select(c => new NormalizedCard{Card = c,NormalizedName = c.Name.ToLower()}).ToList();
+            var allCards = game.AllCards().Select(c => new NormalizedCard{Card = c,NormalizedName = c.Name.ToLowerInvariant()}).ToList();
             var lines = input.Split(new[] { '\r', '\n' }, StringSplitOptions.RemoveEmptyEntries);
             var secArray = d.Sections.ToArray();
             foreach (var line in lines)
@@ -276,8 +345,16 @@ namespace Octgn.DuelMastersDeckParser
                 var match = FindBestMatch(parsed.Name, allCards);
                 if (match != null)
                 {
-                    var multiCard = match.ToMultiCard(parsed.Count);
-                    secArray[i].Cards.AddCard(multiCard);
+                    var existingMatch = secArray[i].Cards.FirstOrDefault(c => c.Name == match.Name);
+                    if (existingMatch != null)
+                    {
+                        existingMatch.Quantity += parsed.Count;
+                    }
+                    else
+                    {
+                        var multiCard = match.ToMultiCard(parsed.Count);
+                        secArray[i].Cards.AddCard(multiCard);
+                    }
                 }
                 else
                 {
