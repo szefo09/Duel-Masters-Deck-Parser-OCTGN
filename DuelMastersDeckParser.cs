@@ -181,7 +181,7 @@ namespace Octgn.DuelMastersDeckParser
                 .Where(c => input.Contains(c.NormalizedName))
                 .ToList();
 
-            preferred = FilterPreferred(candidates);
+            var preferred = FilterPreferred(candidates);
             
             if (preferred.Count > 0)
                 return preferred[0].Card;
@@ -193,7 +193,7 @@ namespace Octgn.DuelMastersDeckParser
                 .Where(c => c.NormalizedName.Equals(input))
                 .ToList();
 
-            var preferred = FilterPreferred(candidates);
+            preferred = FilterPreferred(candidates);
             if (preferred.Count > 0)
                 return preferred[0].Card;
 
