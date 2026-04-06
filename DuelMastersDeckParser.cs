@@ -156,7 +156,7 @@ namespace Octgn.DuelMastersDeckParser
 
             line = line.Trim();
 
-            var match = Regex.Match(line, @"^(\d+)\s*x?\s*(.+)$", RegexOptions.IgnoreCase);
+            var match = Regex.Match(line, @"^x?(\d+)\s*x?\s*(.+)$", RegexOptions.IgnoreCase);
 
             if (match.Success)
             {
@@ -176,13 +176,13 @@ namespace Octgn.DuelMastersDeckParser
         private Card FindBestMatch(string input, List<NormalizedCard> cards)
         {
             input = input.ToLower();
-
-
+            
             var candidates = cards
-                .Where(c => c.NormalizedName.Contains(input))
+                .Where(c => input.Contains(c.NormalizedName))
                 .ToList();
 
-            var preferred = FilterPreferred(candidates);
+            preferred = FilterPreferred(candidates);
+            
             if (preferred.Count > 0)
                 return preferred[0].Card;
 
@@ -190,10 +190,10 @@ namespace Octgn.DuelMastersDeckParser
                 return candidates[0].Card;
 
             candidates = cards
-                .Where(c => input.Contains(c.NormalizedName))
+                .Where(c => c.NormalizedName.Equals(input))
                 .ToList();
 
-            preferred = FilterPreferred(candidates);
+            var preferred = FilterPreferred(candidates);
             if (preferred.Count > 0)
                 return preferred[0].Card;
 
